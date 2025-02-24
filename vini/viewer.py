@@ -301,6 +301,9 @@ class Viff(QtGui.QMainWindow):
         self.c_slice_widget = SliceWidget('c')
         self.s_slice_widget = SliceWidget('s')
         self.t_slice_widget = SliceWidget('t')
+        self.c_slice_widget.connectedSliceWidgets = [self.s_slice_widget, self.t_slice_widget]
+        self.s_slice_widget.connectedSliceWidgets = [self.c_slice_widget, self.t_slice_widget]
+        self.t_slice_widget.connectedSliceWidgets = [self.c_slice_widget, self.s_slice_widget]
         ydim_slicewidget = 12
         self.l.addWidget(self.c_slice_widget, 0, 0, ydim_slicewidget, ydim_slicewidget)
         self.l.addWidget(self.s_slice_widget, 0, 12, ydim_slicewidget, ydim_slicewidget)
@@ -1061,6 +1064,9 @@ class Viff(QtGui.QMainWindow):
         # viewer.
         self.updateSelected()
 
+        # display scale of topmost image
+        self.setScale()
+
         # This will automatically scale and pan the images in the slices.
         self.autoRange()
 
@@ -1214,6 +1220,7 @@ class Viff(QtGui.QMainWindow):
 
         self.imagelist.setCurrentRow(0)
         self.updateSelected()
+        self.setScale(reset=True)
         self.autoRange()
         
     def loadImagesFromNumpy(self, array, itemname):
@@ -1284,6 +1291,9 @@ class Viff(QtGui.QMainWindow):
 
         self.imagelist.setCurrentRow(0)
         self.updateSelected()
+
+        self.setScale()
+
         self.autoRange()
         
         
@@ -1953,6 +1963,7 @@ class Viff(QtGui.QMainWindow):
     def resetEverything(self):
         self.resetAlpha()
         self.autoRange()
+        self.setScale(reset=True)
         self.resetPosThresholds()
         self.resetNegThresholds()
         
@@ -2393,6 +2404,7 @@ class Viff(QtGui.QMainWindow):
                     self.activateImage()
                 else:
                     self.deactivateImage()
+                self.setScale()
             else:
                 self.updateSelected()
             #change the window highlighting if in linked mode (only for zmaps)
@@ -2532,6 +2544,13 @@ class Viff(QtGui.QMainWindow):
         self.slider_neg.setGradientLeftColor(self.slider_color)
         self.slider_neg.setGradientRightColor(self.slider_color)
 
+    def setScale(self, reset = False):
+        for i in range(0, len(self.imagelist)):
+            if bool(self.imagelist.item(i).checkState().value if hasattr(self.imagelist.item(i).checkState(), "value") else self.imagelist.item(i).checkState()): 
+                self.c_slice_widget.setScaleSW(1, round(self.images[i].pixdim[0], 3), reset = reset)
+                self.s_slice_widget.setScaleSW(1, round(self.images[i].pixdim[2], 3), reset = reset)
+                self.t_slice_widget.setScaleSW(1, round(self.images[i].pixdim[1], 3), reset = reset)
+                break
 
     ## Section: Extra Windows ##
     # def rightClickedList(self, QPos):
@@ -2815,6 +2834,8 @@ class Viff(QtGui.QMainWindow):
             self.popouts_ii[ind-1], self.popouts_ii[ind]
         item = self.imagelist.takeItem(ind)
         self.imagelist.insertItem(ind-1, item)
+
+        self.setScale()
 
     ## Section: Functional Image Methods ##
     def resetFuncView(self):

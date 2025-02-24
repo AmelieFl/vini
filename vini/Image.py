@@ -53,6 +53,9 @@ class Image(object):
         # For resample to fit, the affine is overwritten with this:
         self.state_affine_over = False
 
+        #Voxel sizes
+        self.pixdim = [0,0,0]
+        
         # Saves where to saturate of clip values.
         self.clippings_pos = [False, False]
         self.clippings_neg = [False, False]

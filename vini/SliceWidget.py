@@ -29,10 +29,17 @@ class SliceWidget(GraphicsLayoutWidget):
 
         super(SliceWidget, self).__init__()
 
+        self.scale = None
+        self.connectedSliceWidgets = []
+        self.voxelSize = 0
+        self.lineLength = 0
+        self.scaling = 1
+        
         # Modified ViewBox Widget
         self.sb = SliceBox()
 
         self.sb.setAspectLocked(True)
+        self.sb.sigScalingChanged.connect(self.setScaleSW)
         self.addItem(self.sb)
 
         # Removes small black margins around the views.
@@ -51,6 +58,47 @@ class SliceWidget(GraphicsLayoutWidget):
 
         self.initWidget()
         self.initCrosshair()
+
+    def setScaleSW(self, sf, vs=None, connected=False, reset=False):
+        if reset:
+            self.scaling = 1
+        if vs is None:
+            vs = self.voxelSize
+            for sw in self.connectedSliceWidgets:
+                sw.setScaleSW(sf, sw.voxelSize, connected=True)
+            line_length = self.lineLength *sf
+            self.scaling = self.scaling *sf
+        elif connected: 
+            self.scaling = self.scaling * sf
+            line_length = self.lineLength *sf
+        else: 
+            self.voxelSize= vs
+            line_length = 10/vs * self.scaling
+        self.lineLength = line_length
+
+        if self.scale is not None:
+            self.scene().removeItem(self.scale)
+    
+        line = QtWidgets.QGraphicsLineItem(0, 2.5, line_length, 2.5)
+        line.setPen(QtGui.QPen(QtGui.QColor(255, 255, 255), 1))
+
+        start_marker = QtWidgets.QGraphicsLineItem(0, 0, 0, 5)  
+        start_marker.setPen(QtGui.QPen(QtGui.QColor(255, 255, 255), 1))
+
+        end_marker = QtWidgets.QGraphicsLineItem(line_length, 0, line_length, 5) 
+        end_marker.setPen(QtGui.QPen(QtGui.QColor(255, 255, 255), 1))
+
+        text_item = QtWidgets.QGraphicsTextItem("1 cm")
+        text_item.setDefaultTextColor(QtGui.QColor(255, 255, 255))
+        text_item.setPos(line_length / 2 - text_item.boundingRect().width() / 2, 10)
+
+        self.scale = QtWidgets.QGraphicsItemGroup()
+        self.scale.addToGroup(line)
+        self.scale.addToGroup(start_marker)
+        self.scale.addToGroup(end_marker)
+        self.scale.addToGroup(text_item)
+        self.scale.setPos(20, 15)
+        self.scene().addItem(self.scale)
 
     def zoomIn(self):
         self.sb.zoom(0.9)

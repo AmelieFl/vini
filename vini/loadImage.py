@@ -79,6 +79,9 @@ def setPreferences(image, hdr, pref, f_type):
         print ("image error: image is neither 3D nor 4D.")
 
 
+    img.pixdim = hdr.get_zooms()
+
+
     if 'sform_code' in hdr.keys():
         img.sform_code = hdr['sform_code']
     

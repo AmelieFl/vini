@@ -735,6 +735,7 @@ class ViewBox(GraphicsWidget):
             scale[0] = scale[1]
 
         vr = self.targetRect()
+        view_rect = self.viewRect()
         if center is None:
             center = Point(vr.center())
         else:
@@ -749,6 +750,8 @@ class ViewBox(GraphicsWidget):
             self.setXRange(tl.x(), br.x(), padding=0)
         else:
             self.setRange(QtCore.QRectF(tl, br), padding=0)
+            
+        return view_rect.width()/ self.viewRect().width()
 
     def translateBy(self, t=None, x=None, y=None):
         """

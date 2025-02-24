@@ -80,6 +80,7 @@ class SliceBox(ViewBox):
     sigXRangeChanged = QtCore.Signal(object, object)
     sigRangeChangedManually = QtCore.Signal(object)
     sigRangeChanged = QtCore.Signal(object, object)
+    sigScalingChanged = QtCore.Signal(object)
     #sigActionPositionChanged = QtCore.Signal(object)
     sigStateChanged = QtCore.Signal(object)
     sigTransformChanged = QtCore.Signal(object)
@@ -246,9 +247,10 @@ class SliceBox(ViewBox):
         center = fn.invertQTransform(self.childGroup.transform()).map(center)
 
         self._resetTarget()
-        self.scaleBy(s, center)
+        scale_factor = self.scaleBy(s, center)
         self.sigRangeChangedManually.emit(self.state['mouseEnabled'])
         ev.accept()
+        self.sigScalingChanged.emit(scale_factor)
 
     def linkView(self, axis, view=None):
         """
